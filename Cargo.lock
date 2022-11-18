@@ -1618,6 +1618,7 @@ dependencies = [
  "scraper",
  "teloxide-core",
  "tokio",
+ "url",
 ]
 
 [[package]]
