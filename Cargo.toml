@@ -6,3 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+teloxide-core = { version = "^0.8", features = ["auto_send"] }
+
+# Tokio and Futures
+tokio = { version =  "^1.21", default-features = false, features = ["rt-multi-thread", "macros"] }
+futures = { version = "^0.3", default-features = false }
+scraper = { version = "0.13.0" }
+reqwest = "0.11.13"
