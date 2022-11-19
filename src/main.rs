@@ -1,5 +1,6 @@
 use std::{env, fs};
-use std::fs::{File, OpenOptions};
+use std::fs::{File};
+use std::io::BufReader;
 use std::io::prelude::*;
 use reqwest::{Client, Error};
 use scraper::{Html, Selector};
@@ -22,10 +23,16 @@ async fn main() -> Result<(), Error> {
 
     let bot = Bot::from_env().parse_mode(ParseMode::Html);
 
-    let mut file = OpenOptions::new()
+    let mut file = File::options()
+        .create(true)
+        .read(true)
+        .write(true)
         .append(true)
         .open("notified.db")
         .unwrap();
+
+    let reader = BufReader::new(file.try_clone().unwrap());
+    let lines = reader.lines().into_iter().map(|x| {x.unwrap()}).collect::<Vec<_>>();
 
     for x in fragment.select(&selector) {
         let text = x.text().collect::<Vec<_>>().join(" ");
@@ -37,14 +44,23 @@ async fn main() -> Result<(), Error> {
             Err(_) => Url::parse(format!("{}{}", base_url, href).as_str()).unwrap()
         };
 
-        let body = format!("<b>Nuova Ordinanza Comune di Varese</b>\n\n<a href=\"{}\">{}</a>", url.as_str(), text);
-        bot.send_message(UserId(chat_id), body).await.unwrap();
-
-        if let Err(e) = writeln!(file, "{}", url.as_str()) {
-            eprintln!("Couldn't write to file: {}", e);
+        let mut found = false;
+        for line in lines.clone() {
+            if line.eq(url.as_str()) {
+                found = true;
+            }
         }
 
-        println!("Sending {}", url.as_str());
+        if !found {
+            let body = format!("<b>Nuova Ordinanza Comune di Varese</b>\n\n<a href=\"{}\">{}</a>", url.as_str(), text);
+            bot.send_message(UserId(chat_id), body).await.unwrap();
+
+            if let Err(e) = writeln!(file, "{}", url.as_str()) {
+                eprintln!("Couldn't write to file: {}", e);
+            }
+
+            println!("Sending {}", url.as_str());
+        }
     }
 
     Ok(())
