@@ -1,16 +1,15 @@
-use std::{env, fs};
-use std::fs::{File};
+use std::fs::File;
 use std::io::BufReader;
 use std::io::prelude::*;
 use reqwest::{Client, Error};
 use scraper::{Html, Selector};
 use teloxide_core::prelude::*;
 use teloxide_core::types::ParseMode;
-use url::{Url};
+use url::Url;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    let chat_id = env::var("CHAT_ID").unwrap().parse::<u64>().unwrap();
+    let recipient = "@ComuneVareseOrdinanze".to_string();
 
     let source_url = Url::parse("https://www.comune.varese.it/c012133/zf/index.php/servizi-aggiuntivi/index/index/idtesto/565").unwrap();
     let base_url = "http://www.comune.varese.it";
@@ -53,7 +52,7 @@ async fn main() -> Result<(), Error> {
 
         if !found {
             let body = format!("<b>Nuova Ordinanza Comune di Varese</b>\n\n<a href=\"{}\">{}</a>", url.as_str(), text);
-            bot.send_message(UserId(chat_id), body).await.unwrap();
+            bot.send_message(recipient.clone(), body).await.unwrap();
 
             if let Err(e) = writeln!(file, "{}", url.as_str()) {
                 eprintln!("Couldn't write to file: {}", e);
